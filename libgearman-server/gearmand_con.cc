@@ -227,6 +227,28 @@ gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *serve
   return NULL;
 }
 
+gearmand_error_t gearman_server_job_exists_by_unique(gearman_server_st& server,
+                                                        const char *unique,
+                                                        const size_t unique_length)
+{
+  uint32_t key= _server_job_hash(unique, unique_length);
+  gearman_server_job_st *server_job;
+
+  for (server_job= server.unique_hash[key % server.hashtable_buckets];
+       server_job != NULL; server_job= server_job->unique_next)
+  {
+    if (bool(server_job->unique[0]) and
+        (strcmp(server_job->unique, unique) == 0))
+    {
+      return GEARMAND_JOB_EXISTS;
+    }
+  }
+  return gearman_queue_job_exists_by_unique(Server,
+                                unique,
+                                unique_length);
+
+}            
+
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               const char *job_handle,
                                               const size_t job_handle_length,

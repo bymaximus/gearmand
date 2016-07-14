@@ -70,4 +70,14 @@ void gearman_server_set_queue(gearman_server_st& server,
                               gearman_queue_replay_fn *replay);
 
 void gearman_server_set_queue(gearman_server_st& server,
+                              void *context,
+                              gearman_queue_add_fn *add,
+                              gearman_queue_flush_fn *flush,
+                              gearman_queue_done_fn *done,
+                              gearman_queue_replay_fn *replay,
+							  gearman_queue_job_exists_by_unique_fn *job_exists_by_unique);
+
+
+
+void gearman_server_set_queue(gearman_server_st& server,
                               gearmand::queue::Context* context);

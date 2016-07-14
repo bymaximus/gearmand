@@ -83,6 +83,11 @@ gearmand_error_t gearman_server_job_cancel(gearman_server_st& server,
                                            const char *job_handle,
                                            const size_t job_handle_length);
 
+GEARMAN_API
+gearmand_error_t gearman_server_job_exists_by_unique(gearman_server_st& server,
+                                                        const char *unique,
+                                                        const size_t unique_length);
+
 /**
  * Free resources used by a connection.
  * @param dcon Connection previously initialized with gearmand_con_create.

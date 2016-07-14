@@ -139,6 +139,7 @@ int main(int args, char *argv[])
     ("create-function", boost::program_options::value<std::string>(), "Create the function from the server.") 
     ("cancel-job", boost::program_options::value<std::string>(), "Remove a given job from the server's queue")
     ("drop-function", boost::program_options::value<std::string>(), "Drop the function from the server.")
+	("job-exists", boost::program_options::value<std::string>(), "Check if job exists.")
     ("show-unique-jobs", "Show unique jobs on server.")
     ("show-jobs", "Show all jobs on the server.")
     ("getpid", "Get Process ID for the server.")
@@ -180,6 +181,7 @@ int main(int args, char *argv[])
      vm.count("create-function")  == 0 and
      vm.count("drop-function")  == 0 and
      vm.count("cancel-job") == 0 and
+	 vm.count("job-exists") == 0 and
      vm.count("show-unique-jobs") == 0 and
      vm.count("show-jobs") == 0 and
      vm.count("getpid") == 0 and
@@ -221,6 +223,14 @@ int main(int args, char *argv[])
   {
     std::string execute(util_literal_param("cancel job "));
     execute.append(vm["cancel-job"].as<std::string>());
+    execute.append("\r\n");
+    instance.push(new util::Operation(execute.c_str(), execute.size()));
+  }
+
+  if (vm.count("job-exists"))
+  {
+    std::string execute(util_literal_param("job exists "));
+    execute.append(vm["job-exists"].as<std::string>());
     execute.append("\r\n");
     instance.push(new util::Operation(execute.c_str(), execute.size()));
   }

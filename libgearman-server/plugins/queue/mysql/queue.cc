@@ -203,6 +203,10 @@ static gearmand_error_t _mysql_queue_replay(gearman_server_st *server, void *con
         gearman_queue_add_fn *add_fn,
         void *add_context);
 
+static gearmand_error_t _mysql_queue_job_exists_by_unique(gearman_server_st *server, void *context,
+        const char *unique,
+        size_t unique_size);
+
 
 gearmand_error_t _initialize(gearman_server_st& server, gearmand::plugins::queue::MySQL *queue)
 {
@@ -212,7 +216,7 @@ gearmand_error_t _initialize(gearman_server_st& server, gearmand::plugins::queue
 
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM,"Initializing MySQL module");
 
-  gearman_server_set_queue(server, queue, _mysql_queue_add, _mysql_queue_flush, _mysql_queue_done, _mysql_queue_replay);
+  gearman_server_set_queue(server, queue, _mysql_queue_add, _mysql_queue_flush, _mysql_queue_done, _mysql_queue_replay, _mysql_queue_job_exists_by_unique);
 
   queue->con= mysql_init(queue->con);
 
@@ -437,6 +441,47 @@ static gearmand_error_t _mysql_queue_done(gearman_server_st*, void *context,
 
   return GEARMAND_SUCCESS;
 }
+
+static gearmand_error_t _mysql_queue_job_exists_by_unique(gearman_server_st*, void *context,
+                                          const char *unique,
+                                          size_t unique_size)
+{
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"MySQL exists: %.*s", (uint32_t) unique_size, (char *) unique);
+
+   MYSQL_RES * result;
+  char query_buffer[1024];
+
+  gearmand::plugins::queue::MySQL *queue= (gearmand::plugins::queue::MySQL *)context;
+
+  int query_buffer_length= snprintf(query_buffer, sizeof(query_buffer),
+                                    "SELECT 1 FROM %s WHERE unique_key = '%s' LIMIT 1",
+                                    queue->mysql_table.c_str(), (char *) unique);
+
+  if (mysql_real_query(queue->con, query_buffer, query_buffer_length))
+  {
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_real_query failed: %s", mysql_error(queue->con));
+    return GEARMAND_QUEUE_ERROR;
+  }
+  if (!(result= mysql_store_result(queue->con)))
+  {
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_store_result failed: %s", mysql_error(queue->con));
+    return GEARMAND_QUEUE_ERROR;
+  }
+  if (mysql_num_fields(result) < 1)
+  {
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "MySQL queue: insufficient row fields in queue table");
+    return GEARMAND_QUEUE_ERROR;
+  }
+
+  if (mysql_num_rows(result) == 1) {
+		mysql_free_result(result);
+		return GEARMAND_JOB_EXISTS;
+  }
+
+  mysql_free_result(result);
+  return GEARMAND_NO_JOBS;
+}
+
 
 static gearmand_error_t _mysql_queue_replay(gearman_server_st* server, void *context,
                                             gearman_queue_add_fn *add_fn,

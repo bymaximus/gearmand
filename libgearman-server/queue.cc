@@ -141,6 +141,30 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
   }
 }
 
+
+gearmand_error_t gearman_queue_job_exists_by_unique(gearman_server_st *server,
+                                    const char *unique,
+                                    size_t unique_size)
+{
+  if (server->queue_version == QUEUE_VERSION_NONE)
+  {
+    return GEARMAND_NO_JOBS;
+  }
+  else if (server->queue_version == QUEUE_VERSION_FUNCTION &&
+	  server->queue.functions->_job_exists_by_unique_fn != NULL
+	  )
+  {
+    assert(server->queue.functions->_job_exists_by_unique_fn);
+    return (*(server->queue.functions->_job_exists_by_unique_fn))(server,
+                                                  (void *)server->queue.functions->_context,
+                                                  unique, unique_size);
+  }
+  else
+  {
+	  return GEARMAND_NO_JOBS;
+  }
+}
+
 void gearman_server_save_job(gearman_server_st& server,
                              const gearman_server_job_st* server_job)
 {
@@ -174,6 +198,40 @@ void gearman_server_set_queue(gearman_server_st& server,
       server.queue.functions->_flush_fn= flush;
       server.queue.functions->_done_fn= done;
       server.queue.functions->_replay_fn= replay;
+    }
+    assert(server.queue.functions);
+  }
+  else
+  {
+    server.queue_version= QUEUE_VERSION_NONE;
+  }
+}
+
+void gearman_server_set_queue(gearman_server_st& server,
+                              void *context,
+                              gearman_queue_add_fn *add,
+                              gearman_queue_flush_fn *flush,
+                              gearman_queue_done_fn *done,
+                              gearman_queue_replay_fn *replay,
+							  gearman_queue_job_exists_by_unique_fn *job_exists_by_unique)
+{
+  delete server.queue.functions;
+  server.queue.functions= NULL;
+  delete server.queue.object;
+  server.queue.object= NULL;
+
+  if (add)
+  {
+    server.queue_version= QUEUE_VERSION_FUNCTION;
+    server.queue.functions= new queue_st();
+    if (server.queue.functions)
+    {
+      server.queue.functions->_context= context;
+      server.queue.functions->_add_fn= add;
+      server.queue.functions->_flush_fn= flush;
+      server.queue.functions->_done_fn= done;
+      server.queue.functions->_replay_fn= replay;
+	  server.queue.functions->_job_exists_by_unique_fn = job_exists_by_unique;
     }
     assert(server.queue.functions);
   }

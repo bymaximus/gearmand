@@ -61,6 +61,11 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
                                     const char *function_name,
                                     size_t function_name_size);
 
+gearmand_error_t gearman_queue_job_exists_by_unique(gearman_server_st *server,
+                                    const char *unique,
+                                    size_t unique_size);
+
+
 #ifdef __cplusplus
 void gearman_server_save_job(gearman_server_st& server,
                              const gearman_server_job_st* server_job);

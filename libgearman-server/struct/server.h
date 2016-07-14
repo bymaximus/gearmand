@@ -43,13 +43,15 @@ struct queue_st {
   gearman_queue_flush_fn *_flush_fn;
   gearman_queue_done_fn *_done_fn;
   gearman_queue_replay_fn *_replay_fn;
+  gearman_queue_job_exists_by_unique_fn *_job_exists_by_unique_fn;
 
   queue_st() :
     _context(NULL),
     _add_fn(NULL),
     _flush_fn(NULL),
     _done_fn(NULL),
-    _replay_fn(NULL)
+    _replay_fn(NULL),
+	_job_exists_by_unique_fn(NULL)
   {
   }
 };

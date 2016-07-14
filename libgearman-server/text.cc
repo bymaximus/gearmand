@@ -160,6 +160,23 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
       }
     }
   }
+  else if (packet->argc >= 3 
+           and strcasecmp("job", (char *)(packet->arg[0])) == 0)
+  {
+    if (packet->argc == 3
+        and strcasecmp("exists", (char *)(packet->arg[1])) == 0)
+    {
+      gearmand_error_t ret= gearman_server_job_exists_by_unique(Gearmand()->server, packet->arg[2], strlen(packet->arg[2]));
+      if (ret == GEARMAND_JOB_EXISTS)
+      {
+        data.vec_printf(TEXT_SUCCESS);
+      }
+      else
+      {
+        data.vec_printf(TEXT_ERROR_UNKNOWN_JOB);
+      }
+	}
+  }
   else if (packet->argc >= 2 and strcasecmp("show", (char *)(packet->arg[0])) == 0)
   {
     if (packet->argc == 3
