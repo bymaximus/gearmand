@@ -216,7 +216,8 @@ static gearman_return_t _client_do_background(gearman_client_st* client_shell,
                                               gearman_string_t &function,
                                               gearman_unique_t &unique,
                                               gearman_string_t &workload,
-                                              gearman_job_handle_t job_handle)
+                                              gearman_job_handle_t job_handle,
+                                              time_t whenTimestamp = 0)
 {
   if (client_shell == NULL or client_shell->impl() == NULL)
   {
@@ -240,7 +241,7 @@ static gearman_return_t _client_do_background(gearman_client_st* client_shell,
                                      function,
                                      unique,
                                      workload,
-                                     time_t(0),
+                                     whenTimestamp,
                                      gearman_actions_do_default());
   client->universal.options.no_new_data= false;
 
@@ -763,6 +764,26 @@ void gearman_client_do_status(gearman_client_st *, uint32_t *numerator, uint32_t
   {
     *denominator= 0;
   }
+}
+
+gearman_return_t gearman_client_do_epoch(gearman_client_st *client_shell,
+                                        const char *function_name,
+                                        time_t when,
+                                        const char *unique,
+                                        const void *workload_str,
+                                        size_t workload_size,
+                                        gearman_job_handle_t job_handle)
+{
+  gearman_string_t function= { gearman_string_param_cstr(function_name) };
+  gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
+  gearman_string_t workload= { static_cast<const char*>(workload_str), workload_size };
+
+  return _client_do_background(client_shell, GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
+                               function,
+                               local_unique,
+                               workload,
+                               job_handle,
+                              when);
 }
 
 gearman_return_t gearman_client_do_background(gearman_client_st *client_shell,
