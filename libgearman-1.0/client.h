@@ -352,6 +352,29 @@ void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
                               uint32_t *denominator);
 
 /**
+ * Run a task in the background with epoch.
+ *
+ * @param[in] client Structure previously initialized with
+ *  gearman_client_create() or gearman_client_clone().
+ * @param[in] function_name The name of the function to run.
+ * @param[in] when Unix timestamp job should wait before start being send to workers.
+ * @param[in] unique Optional unique job identifier, or NULL for a new UUID.
+ * @param[in] workload The workload to pass to the function when it is run.
+ * @param[in] workload_size Size of the workload.
+ * @param[out] job_handle A buffer to store the job handle in. Must be at least
+    GEARMAN_JOB_HANDLE_SIZE bytes long.
+ * @return Standard gearman return value.
+ */
+GEARMAN_API
+gearman_return_t gearman_client_do_epoch(gearman_client_st *client,
+                                        const char *function_name,
+                                        time_t when,
+                                        const char *unique,
+                                        const void *workload,
+                                        size_t workload_size,
+                                        gearman_job_handle_t job_handle);
+
+/**
  * Run a task in the background.
  *
  * @param[in] client Structure previously initialized with
