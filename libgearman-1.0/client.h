@@ -442,6 +442,10 @@ GEARMAN_API
 gearman_status_t gearman_client_unique_status(gearman_client_st *client,
                                               const char *unique, size_t unique_length);
 
+GEARMAN_API
+gearman_return_t gearman_client_job_exists_by_unique(gearman_client_st *client,
+													 const char *unique, size_t unique_length);
+
 // This is not in the API yet, subject to change
 GEARMAN_API
 gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *client,

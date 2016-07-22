@@ -783,7 +783,7 @@ gearman_return_t gearman_client_do_epoch(gearman_client_st *client_shell,
                                local_unique,
                                workload,
                                job_handle,
-                              when);
+                               when);
 }
 
 gearman_return_t gearman_client_do_background(gearman_client_st *client_shell,
@@ -838,6 +838,62 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client_shel
                                local_unique,
                                workload,
                                job_handle);
+}
+
+gearman_return_t gearman_client_job_exists_by_unique(gearman_client_st *client_shell,
+													 const char *unique, size_t unique_length)
+{
+  if (client_shell == NULL or client_shell->impl() == NULL)
+  {
+    return GEARMAN_INVALID_ARGUMENT;
+  }
+
+  Client* client = client_shell->impl();
+  client->universal.reset_error();
+
+  const void *args[4];
+  size_t args_size[4];
+
+  args[0] = "job ";
+  args_size[0] = 4;
+  args[1] = "exists ";
+  args_size[1] = 7;
+  args[2] = unique;
+  args_size[2] = unique_length;
+  args[3] = "\n";
+  args_size[3] = 1;
+
+  gearman_packet_st job_exists_packet;
+  gearman_return_t job_exists = GEARMAN_INVALID_ARGUMENT;
+  gearman_return_t ret = gearman_packet_create_args(client->universal,
+                                                   job_exists_packet,
+                                                   GEARMAN_MAGIC_TEXT,
+                                                   GEARMAN_COMMAND_TEXT,
+                                                   args, args_size, 4);
+  if (gearman_success(ret)) {
+	  if (client->con == NULL) {
+		  client->con = gearman_ready(client->universal);
+	  }
+	  if (client->con != NULL) {
+		  ret = client->con->send_packet(job_exists_packet, true);		  
+		  gearman_packet_free(&(job_exists_packet));
+		  if (gearman_success(ret)) {
+			  gearman_packet_st *packet_ptr = client->con->receiving(client->con->_packet, ret, true);
+			  if (packet_ptr == NULL) {				  
+				  job_exists = GEARMAN_NOT_CONNECTED;
+			  } else if (gearman_success(ret)) {
+				  if (packet_ptr != NULL and strncmp("OK", packet_ptr->args, sizeof("OK")) == 0) {
+					  job_exists = GEARMAN_JOB_EXISTS;
+				  } else {
+					  job_exists = GEARMAN_NO_JOBS;
+				  }
+			  }
+		  }
+	  } else {
+		  job_exists = GEARMAN_NOT_CONNECTED;
+	  }	  
+   }
+   return job_exists;
 }
 
 gearman_status_t gearman_client_unique_status(gearman_client_st *client_shell,

@@ -443,12 +443,12 @@ static gearmand_error_t _mysql_queue_done(gearman_server_st*, void *context,
 }
 
 static gearmand_error_t _mysql_queue_job_exists_by_unique(gearman_server_st*, void *context,
-                                          const char *unique,
-                                          size_t unique_size)
+														  const char *unique,
+														  size_t unique_size)
 {
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"MySQL exists: %.*s", (uint32_t) unique_size, (char *) unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"MySQL JOB EXISTS: %.*s", (uint32_t) unique_size, (char *) unique);
 
-   MYSQL_RES * result;
+  MYSQL_RES * result;
   char query_buffer[1024];
 
   gearmand::plugins::queue::MySQL *queue= (gearmand::plugins::queue::MySQL *)context;
@@ -472,7 +472,6 @@ static gearmand_error_t _mysql_queue_job_exists_by_unique(gearman_server_st*, vo
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "MySQL queue: insufficient row fields in queue table");
     return GEARMAND_QUEUE_ERROR;
   }
-
   if (mysql_num_rows(result) == 1) {
 		mysql_free_result(result);
 		return GEARMAND_JOB_EXISTS;

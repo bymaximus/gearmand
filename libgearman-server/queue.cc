@@ -143,8 +143,8 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
 
 
 gearmand_error_t gearman_queue_job_exists_by_unique(gearman_server_st *server,
-                                    const char *unique,
-                                    size_t unique_size)
+													const char *unique,
+													size_t unique_size)
 {
   if (server->queue_version == QUEUE_VERSION_NONE)
   {
@@ -156,8 +156,8 @@ gearmand_error_t gearman_queue_job_exists_by_unique(gearman_server_st *server,
   {
     assert(server->queue.functions->_job_exists_by_unique_fn);
     return (*(server->queue.functions->_job_exists_by_unique_fn))(server,
-                                                  (void *)server->queue.functions->_context,
-                                                  unique, unique_size);
+																  (void *)server->queue.functions->_context,
+																  unique, unique_size);
   }
   else
   {
